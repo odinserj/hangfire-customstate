@@ -33,7 +33,7 @@ namespace Hangfire.WaitingAckState
             foreach (var job in jobs)
             {
                 WriteLiteral("<tr>\r\n");
-                WriteLiteral($"<td class=\"min-width\"><a href='jobs/details/{job.JobId}'>#{job.JobId}</a></td>\r\n");
+                WriteLiteral($"<td class=\"min-width\"><a href='jobs/details/{job.JobId}'>{job.JobId}</a></td>\r\n");
                 WriteLiteral($"<td><a href='jobs/details/{job.JobId}'>{job.JobName}</a></td>\r\n");
                 WriteLiteral($"<td class=\"align-right\">{job.CreatedAt}</td>\r\n");
                 WriteLiteral($"<td class=\"align-right\"><a style='cursor:pointer' data-ajax='{@Url.To($"/waitingack/{job.JobId}/delete")}' data-confirm='Are you sure?'>Delete</a></td>\r\n");
