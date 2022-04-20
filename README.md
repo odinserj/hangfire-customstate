@@ -7,26 +7,19 @@ Hangfire includes a state machine for background jobs. Each background job has a
 
 ## Usage
 
-To register state handler and filter:
+To register state handler, filter and dashboard page just call the `UseWaitingAckState` extension method:
 
 ```cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddHangfireWaitingAckState();
-    }
-}
-```
-
-To add WaitingAck Jobs page to the Hangfire dashboard:
-
-```cs
-public class Startup
-{
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseHangfireWaitingAckPage(Configuration.GetConnectionString("DefaultConnection"));
+        services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseXXXStorage()
+            .UseWaitingAckState()); // Add this line
     }
 }
 ```
@@ -48,25 +41,15 @@ public class TestJob : WaitingAckJobBase
 
 To register recurring job in Startup.cs:
 ```cs
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IRecurringJobManager recurringJobs)
 {
-    RecurringJob.AddOrUpdate<TestJob>("testjob", job => job.Execute(null, null), Cron.Never);
+    recurringJobs.AddOrUpdate<TestJob>("testjob", job => job.Execute(null, null), Cron.Never);
 }
 ```
 
 ## How to run sample application ?
 
-Sample application needs postgresql database. [docker-compose.yml](docker-compose.yml) file has postgresql and pgadmin containers. To run docker-compose file:
-
-```cs
-docker-compose up -d
-```
-
-Then, postgresql will be ready at **localhost:5432**. Default username is **admin** and password is **admin**.
-
-Pgadmin will be available at http://localhost:5050. Default username is **admin@admin.com** and password is **admin**.
-
-After the infrastructure running, sample application can be run with the command:
+Sample application can be run with the command:
 
 
 ```
@@ -74,16 +57,16 @@ cd src/Hangfire.WaitingAckState.SampleApp
 dotnet run
 ```
 
-Application runs at http://localhost:5000. Hangfire dashboard will be available at http://localhost:5000/hangfire
+Application runs at http://localhost:5003. Hangfire dashboard will be available at http://localhost:5003/hangfire
 
 ## Trigger Recurring Job
 
-Open http://localhost:5000/hangfire/recurring page and select the job. Then, click *Trigger now* button.
+Open http://localhost:5003/hangfire/recurring page and select the job. Then, click *Trigger now* button.
 
-After a few seconds, the job will be listed in the page http://localhost:5000/hangfire/waitingack.
+After a few seconds, the job will be listed in the page http://localhost:5003/hangfire/waitingack.
 
 There are two endpoints to complete job as *succeeded* or *failed*.
 
-To complete as succeeded: http://localhost:5000/api/job/{jobId}/success
+To complete as succeeded: http://localhost:5003/api/job/{jobId}/success
 
-To complete as failed: http://localhost:5000/api/job/{jobId}/fail
+To complete as failed: http://localhost:5003/api/job/{jobId}/fail

@@ -1,14 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Hangfire.Common;
 using Hangfire.States;
 using Hangfire.Storage;
+using Newtonsoft.Json;
 
 namespace Hangfire.WaitingAckState
 {
     public class WaitingAckState : IState
     {
+        [JsonIgnore]
         public string Name => StateName;
+
+        [JsonIgnore]
         public string Reason => "Waiting for acknowledgement from an external service.";
+
+        [JsonIgnore]
         public bool IsFinal => false;
+
+        [JsonIgnore]
         public bool IgnoreJobLoadException => true;
 
         public static readonly string StateName = "WaitingAck";
@@ -17,16 +27,16 @@ namespace Hangfire.WaitingAckState
 
         public class Handler : IStateHandler
         {
-            public const string STATE_STAT_KEY = "stats:waitingack";
+            public const string StateIndexKey = "my-waiting-ack";
             
             public void Apply(ApplyStateContext context, IWriteOnlyTransaction transaction)
             {
-                transaction.IncrementCounter(STATE_STAT_KEY);
+                transaction.AddToSet(StateIndexKey, context.BackgroundJob.Id, JobHelper.ToTimestamp(DateTime.UtcNow));
             }
 
             public void Unapply(ApplyStateContext context, IWriteOnlyTransaction transaction)
             {
-                transaction.DecrementCounter(STATE_STAT_KEY);
+                transaction.RemoveFromSet(StateIndexKey, context.BackgroundJob.Id);
             }
 
             public string StateName => WaitingAckState.StateName;
